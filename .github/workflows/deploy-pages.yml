@@ -38,7 +38,7 @@ jobs:
           sed -i "s|__SITE_URL__|$SITE_URL|g" dist/index.html
           if [ -f dist/llms.txt ]; then sed -i "s|__SITE_URL__|$SITE_URL|g" dist/llms.txt; fi
 
-      - uses: actions/upload-pages-artifact@3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 

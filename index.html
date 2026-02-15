@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LED Grid Builder – Preview MAX7219 LED grids, text & icons</title>
+    <meta name="description" content="Visual tool to build and preview LED grids from MAX7219 modules. Configure module type, color, text, icons; try static, blinking, and scrolling display modes." />
+    <meta name="keywords" content="LED grid, MAX7219, dot matrix, 8x8, 32x32, LED display, preview, builder" />
+    <meta name="author" content="LED Grid Builder" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="__SITE_URL__" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="LED Grid Builder" />
+    <meta property="og:description" content="Visual tool to build and preview LED grids from MAX7219 modules. Configure module type, color, text, and icons." />
+    <meta property="og:url" content="__SITE_URL__" />
+    <meta property="og:locale" content="en" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="LED Grid Builder" />
+    <meta name="twitter:description" content="Visual tool to build and preview LED grids from MAX7219 modules." />
+
+    <!-- Geo (optional: set for location-specific SEO) -->
+    <meta name="geo.region" content="" />
+    <meta name="ICBM" content="" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LED Grid Builder",
+      "description": "Visual tool to build and preview LED grids from MAX7219 modules. Configure module type, color, text, numbers, and icons with static, blinking, or scrolling display.",
+      "url": "__SITE_URL__",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any"
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      (function() {
+        var u = document.querySelector('link[rel=canonical]').href;
+        if (u.indexOf('__SITE_URL__') !== -1) {
+          var base = document.querySelector('base');
+          u = base ? base.href : (location.origin + '/');
+          document.querySelector('link[rel=canonical]').href = u;
+          var og = document.querySelector('meta[property="og:url"]');
+          if (og) og.content = u;
+          var ld = document.querySelector('script[type="application/ld+json"]');
+          if (ld && ld.textContent) {
+            try {
+              var j = JSON.parse(ld.textContent.replace(/__SITE_URL__/g, u));
+              ld.textContent = JSON.stringify(j);
+            } catch (_) {}
+          }
+        }
+      })();
+    </script>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

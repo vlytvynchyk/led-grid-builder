@@ -1,0 +1,25 @@
+# Example nginx config for LED Grid Builder (SPA).
+# Serve the app at the root. Copy dist/ contents to /var/www/led-grid-builder (or your path).
+
+server {
+    listen 80;
+    server_name _;   # replace with your domain or leave as default server
+
+    root /var/www/led-grid-builder;
+    index index.html;
+
+    # Serve static files; fallback to index.html for SPA routing
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static assets (Vite adds hashes to filenames)
+    location ~* \.(js|css|ico|png|jpg|jpeg|gif|svg|woff2?)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Optional: gzip
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+}

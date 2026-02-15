@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { MODULE_TYPES, getGridSize } from './config/modules'
 import { LedGrid } from './components/LedGrid'
 import { SettingsPanel } from './components/SettingsPanel'
@@ -37,6 +37,9 @@ function App() {
 
   const [blinkingOn, setBlinkingOn] = useState(true)
   const [scrollOffset, setScrollOffset] = useState(0)
+  const [pngBackground, setPngBackground] = useState('dark')
+
+  const gridRef = useRef(null)
 
   const moduleType = MODULE_TYPES[moduleTypeId]
   const gridSize = getGridSize(moduleType, numModules, arrangement)
@@ -68,6 +71,21 @@ function App() {
   }, [displayMode, scrollSpeedMs])
 
   const content = contentMode === 'text' ? textContent : contentMode === 'icon' ? iconId : canvasGrid
+
+  const handleExportPng = useCallback(async () => {
+    if (!gridRef.current) return
+    const bgColor = pngBackground === 'transparent'
+      ? null
+      : getComputedStyle(document.documentElement).getPropertyValue('--bg-dark').trim() || '#0d0f14'
+    const blob = await gridRef.current.exportPng(bgColor)
+    if (!blob) return
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'led-grid.png'
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [pngBackground])
 
   return (
     <div className="app">
@@ -131,6 +149,7 @@ function App() {
         <section className="preview-section">
           <h2>Preview</h2>
           <LedGrid
+            ref={gridRef}
             cols={cols}
             rows={rows}
             layoutCols={layoutCols}
@@ -149,6 +168,27 @@ function App() {
           <p className="preview-meta">
             {cols}×{rows} ({numModules} module{numModules !== 1 ? 's' : ''}) · {displayMode}
           </p>
+          <div className="export-controls">
+            <div className="segmented-control">
+              <button
+                type="button"
+                className={`segmented-btn${pngBackground === 'dark' ? ' segmented-btn--active' : ''}`}
+                onClick={() => setPngBackground('dark')}
+              >
+                Background
+              </button>
+              <button
+                type="button"
+                className={`segmented-btn${pngBackground === 'transparent' ? ' segmented-btn--active' : ''}`}
+                onClick={() => setPngBackground('transparent')}
+              >
+                Transparent
+              </button>
+            </div>
+            <button type="button" className="export-btn" onClick={handleExportPng}>
+              Save as PNG
+            </button>
+          </div>
         </section>
       </div>
     </div>

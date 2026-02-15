@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useImperativeHandle, forwardRef, useCallback } from 'react'
 import { stringToGrid } from '../config/font5x7'
 import { ICONS } from '../config/icons'
 import { MODULE_COLORS } from '../config/modules'
@@ -13,7 +13,7 @@ const PREVIEW_SIZE = 400
  * Renders the LED grid preview with optional content (text, icon).
  * When layoutCols/layoutRows > 1, draws visual separation between modules.
  */
-export function LedGrid({
+export const LedGrid = forwardRef(function LedGrid({
   cols,
   rows,
   layoutCols = 1,
@@ -28,7 +28,7 @@ export function LedGrid({
   scrollOffset = 0,
   blinkingOn = true,
   smoothing = false,
-}) {
+}, ref) {
   const multiModule = layoutCols > 1 || layoutRows > 1
   const moduleCols = Math.floor(cols / layoutCols)
   const moduleRows = Math.floor(rows / layoutRows)
@@ -270,6 +270,84 @@ export function LedGrid({
 
   const showPixels = displayMode !== 'blink' || blinkingOn
 
+  const exportPng = useCallback((bgColor) => {
+    const multi = layoutCols > 1 || layoutRows > 1
+    const canvasW = multi
+      ? layoutCols * moduleWidth + (layoutCols - 1) * MODULE_GAP
+      : width
+    const canvasH = multi
+      ? layoutRows * moduleHeight + (layoutRows - 1) * MODULE_GAP
+      : height
+
+    const canvas = document.createElement('canvas')
+    canvas.width = canvasW
+    canvas.height = canvasH
+    const ctx = canvas.getContext('2d')
+
+    if (bgColor) {
+      ctx.fillStyle = bgColor
+      ctx.fillRect(0, 0, canvasW, canvasH)
+    }
+
+    const ledColor = MODULE_COLORS[colorId]?.css ?? MODULE_COLORS.green.css
+    const offColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-input').trim() || '#1e232d'
+    const radius = Math.max(1, Math.floor(cellSize / 8))
+
+    const drawRoundRect = (x, y, w, h, r) => {
+      ctx.beginPath()
+      ctx.moveTo(x + r, y)
+      ctx.lineTo(x + w - r, y)
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+      ctx.lineTo(x + w, y + h - r)
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+      ctx.lineTo(x + r, y + h)
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+      ctx.lineTo(x, y + r)
+      ctx.quadraticCurveTo(x, y, x + r, y)
+      ctx.closePath()
+      ctx.fill()
+    }
+
+    if (multi) {
+      for (let ly = 0; ly < layoutRows; ly++) {
+        for (let lx = 0; lx < layoutCols; lx++) {
+          const r0 = ly * moduleRows
+          const c0 = lx * moduleCols
+          const offsetX = lx * (moduleWidth + MODULE_GAP)
+          const offsetY = ly * (moduleHeight + MODULE_GAP)
+          for (let dr = 0; dr < moduleRows; dr++) {
+            for (let dc = 0; dc < moduleCols; dc++) {
+              const on = smoothedGrid[r0 + dr]?.[c0 + dc] ?? 0
+              const isOn = on && showPixels
+              const x = offsetX + dc * (cellSize + GAP)
+              const y = offsetY + dr * (cellSize + GAP)
+              ctx.globalAlpha = isOn ? 1 : 0.25
+              ctx.fillStyle = isOn ? ledColor : offColor
+              drawRoundRect(x, y, cellSize, cellSize, radius)
+            }
+          }
+        }
+      }
+    } else {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const on = smoothedGrid[r]?.[c] ?? 0
+          const isOn = on && showPixels
+          const x = c * (cellSize + GAP)
+          const y = r * (cellSize + GAP)
+          ctx.globalAlpha = isOn ? 1 : 0.25
+          ctx.fillStyle = isOn ? ledColor : offColor
+          drawRoundRect(x, y, cellSize, cellSize, radius)
+        }
+      }
+    }
+
+    ctx.globalAlpha = 1
+    return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+  }, [smoothedGrid, showPixels, cellSize, width, height, moduleWidth, moduleHeight, layoutCols, layoutRows, moduleCols, moduleRows, colorId])
+
+  useImperativeHandle(ref, () => ({ exportPng }), [exportPng])
+
   const cellStyle = (on) => ({
     width: cellSize,
     height: cellSize,
@@ -356,4 +434,4 @@ export function LedGrid({
       )}
     </div>
   )
-}
+})
